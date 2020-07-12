@@ -1,0 +1,18 @@
+{
+  "name": "github-daemon",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src"
+  },
+  "author": "Scott <scott@goldilocks.design>",
+  "license": "ISC",
+  "devDependencies": {
+    "dotenv-defaults": "2.0.0"
+  },
+  "dependencies": {
+    "@apollo/client": "3.0.0-rc.12",
+    "cross-fetch": "3.0.5"
+  }
+}
