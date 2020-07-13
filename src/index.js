@@ -1,27 +1,67 @@
-const {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  gql,
-} = require("@apollo/client");
+const { graphql } = require("@octokit/graphql");
+require("dotenv-defaults").config();
 
-const client = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: new HttpLink({ uri: "https://api.github.com/graphql" }),
-});
+async function queryRepo({ owner, name }) {
+  const query = await graphql({
+    query: `query ($owner: String!, $name: String!) {
+      repository(owner:$owner, name:$name) {
+        id
+        name
+        url
+        description
+        createdAt
+        pushedAt
+        updatedAt
+        homepageUrl
+        openGraphImageUrl
+        usesCustomOpenGraphImage
+        isPrivate
+        primaryLanguage {
+          color
+          name
+        }
+        stargazers {
+          totalCount
+        }
+        ref(qualifiedName: "master") {
+          target {
+            ... on Commit {
+              history(first: 1) {
+                totalCount
+                nodes {
+                  authoredDate
+                  committedDate
+                }
+              }
+            }
+          }
+        }
+        refs(refPrefix: "refs/tags/", last: 1) {
+          edges {
+            node {
+              name
+            }
+          }
+        }
+      }
+    }`,
+    owner,
+    name,
+    headers: {
+      authorization: `bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  });
 
-const GET_VIEWER = gql`
-  query {
-    viewer {
-      login
-    }
-  }
-`;
+  return query.repository;
+}
 
-const viewer = client.query({
-  query: GET_VIEWER,
-  fetchPolicy: "no-cache",
-  errorPolicy: "all",
-});
+async function app() {
+  const repository = await queryRepo({
+    owner: "scotato",
+    name: "github-daemon",
+  });
 
-console.log(viewer);
+  console.log(repository);
+}
+
+app();
